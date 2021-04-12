@@ -1,49 +1,65 @@
 import React from 'react';
 import {
-  Panel,
-  PanelHeaderSimple,
-  Button,
-  Group,
-  Div,
-  Header,
-  FormLayout
+    Panel,
+    PanelHeader,
+    Button,
+    Group,
+    Div,
+    Header,
+    FormLayout,
+    FormItem
 } from '@vkontakte/vkui';
 
 const Home = props => {
-  const { fetchedUser } = props.state;
+    const {fetchedUser} = props.state;
 
-  return (
-    <Panel id={props.id}>
-      <PanelHeaderSimple>Example</PanelHeaderSimple>
+    return (
+        <Panel id={props.id}>
+            <PanelHeader>Example</PanelHeader>
 
-      <Group header={<Header>Basic functions</Header>}>
-        <Div>{`${fetchedUser.first_name} ${fetchedUser.last_name}`}</Div>
-        <Div>
-          <FormLayout>
-            <Button size="xl" onClick={() => props.go('panel2')}>
-              Simple button
-            </Button>
-            <Button size="xl" onClick={() => props.go('onboarding')}>
-              Open onboarding
-            </Button>
-            <Button size="xl" onClick={() => props.openDoneSnackBar('Done.')}>
-              OpenDoneSnackBar
-            </Button>
-            <Button
-              size="xl"
-              onClick={() => props.openErrorSnackBar("Unknown error occurred.")}
-            >
-              OpenErrorSnackBar
-            </Button>
-            <Button size="xl" onClick={() => props.openModal('main')}>
-              Open simple modal
-            </Button>
-          </FormLayout>
-        </Div>
-      </Group>
-      {props.state.snackbar}
-    </Panel>
-  );
+            <Group header={<Header>Basic functions</Header>}>
+                <Div>{`${fetchedUser.first_name} ${fetchedUser.last_name}`}</Div>
+                <Div>
+                    <FormLayout>
+                        <FormItem>
+                            <Button size="l" stretched onClick={() => props.go('panel2')}>
+                                Simple button
+                            </Button>
+                        </FormItem>
+
+                        <FormItem>
+                            <Button size="l" stretched onClick={() => props.setPState({activePanel: 'onboarding'})}>
+                                Open onboarding
+                            </Button>
+                        </FormItem>
+
+                        <FormItem>
+                            <Button size="l" stretched onClick={() => props.openDoneSnackBar('Done.')}>
+                                OpenDoneSnackBar
+                            </Button>
+                        </FormItem>
+
+                        <FormItem>
+                            <Button
+                                size="l"
+                                stretched
+                                onClick={() => props.openErrorSnackBar("Unknown error occurred.")}
+                            >
+                                OpenErrorSnackBar
+                            </Button>
+                        </FormItem>
+
+                        <FormItem>
+                            <Button size="l" stretched onClick={() => props.openModal('main')}>
+                                Open simple modal
+                            </Button>
+                        </FormItem>
+                    </FormLayout>
+                </Div>
+            </Group>
+            {props.state.snackbar}
+        </Panel>
+    );
 };
 
 export default Home;

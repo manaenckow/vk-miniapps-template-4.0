@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import bridge from '@vkontakte/vk-bridge';
 import {
     ConfigProvider,
-    View,
     Snackbar,
     Avatar,
     IS_PLATFORM_ANDROID,
@@ -11,10 +10,9 @@ import {
     ModalPage,
     ModalPageHeader,
     PanelHeaderButton,
-    Epic,
-    Tabbar,
-    TabbarItem,
-    ScreenSpinner
+    ScreenSpinner,
+    IS_PLATFORM_IOS,
+    usePlatform
 } from '@vkontakte/vkui';
 import '@vkontakte/vkui/dist/vkui.css';
 
@@ -23,30 +21,13 @@ import './css/fonts.css';
 
 import API from './helpers/API.js';
 
-import Onboarding from "./panels/Onboarding";
-
-import Home from './panels/Home';
-
-import Panel2 from './panels/Panel2';
+import Structure from './Structure';
 
 import {
     Icon16Clear,
     Icon16Done,
-    Icon24Done,
-    Icon24Cancel,
-    Icon28SettingsOutline,
-    Icon28LikeOutline
+    Icon24Cancel
 } from '@vkontakte/icons';
-
-import dark1 from './panels/components/onboardingPanels/dark1.png';
-import dark4 from './panels/components/onboardingPanels/dark4.png';
-import dark6 from './panels/components/onboardingPanels/dark6.png';
-import dark7 from './panels/components/onboardingPanels/dark7.png';
-
-import light1 from './panels/components/onboardingPanels/light1.png';
-import light4 from './panels/components/onboardingPanels/light4.png';
-import light6 from './panels/components/onboardingPanels/light6.png';
-import light7 from './panels/components/onboardingPanels/light7.png';
 
 
 class App extends Component {
@@ -69,13 +50,14 @@ class App extends Component {
                 last_name: 'User'
             },
 
-            scheme: true ? 'space_gray' : 'bright_light'
+            scheme: 'bright_light'
         };
         this.api = new API();
         this.initHelpers();
     }
 
     componentDidMount() {
+        bridge.send("VKWebAppInit");
         bridge.subscribe(({detail: {type, data}}) => {
             if (type === 'VKWebAppUpdateConfig') {
                 const schemeAttribute = document.createAttribute('scheme');
@@ -109,14 +91,15 @@ class App extends Component {
 
     go = (activePanel) => {
         this.setState({activePanel});
+        window.history.pushState('', '', '')
     };
 
-    openDoneSnackBar = e => {
+    openDoneSnackBar = (t, duration = 3000) => {
         this.setState({
             snackbar:
                 <Snackbar
                     layout="vertical"
-                    duration={3000}
+                    duration={duration}
                     onClose={() => this.setState({snackbar: null})}
                     before={
                         <Avatar size={24} style={{backgroundColor: '#4bb34b'}}>
@@ -124,16 +107,16 @@ class App extends Component {
                         </Avatar>
                     }
                 >
-                    {e}
+                    {t}
                 </Snackbar>
         });
     };
 
-    openErrorSnackBar = e => {
+    openErrorSnackBar = (e, duration = 3000) => {
         this.setState({
             snackbar:
                 <Snackbar
-                    duration={3000}
+                    duration={duration}
                     layout="vertical"
                     onClose={() => this.setState({snackbar: null})}
                     before={
@@ -168,9 +151,9 @@ class App extends Component {
                             <PanelHeaderButton onClick={this.closeModal}>
                                 <Icon24Cancel/>
                             </PanelHeaderButton>}
-                            right={
+                            right={IS_PLATFORM_IOS &&
                                 <PanelHeaderButton onClick={this.closeModal}>
-                                    {IS_PLATFORM_ANDROID ? <Icon24Done/> : 'Готово'}
+                                     <Div>Готово</Div>
                                 </PanelHeaderButton>
                             }
                         >
@@ -185,74 +168,15 @@ class App extends Component {
             </ModalRoot>
         );
 
-        const pages = [
-            {
-                image: this.state.scheme === 'bright_light' ? light1 : dark1,
-                title: 'Заголовок',
-                subtitle: 'Подзаголовок',
-            },
-            {
-                image: this.state.scheme === 'bright_light' ? light4 : dark4,
-                title: 'Заголовок',
-                subtitle: 'Подзаголовок',
-            },
-            {
-                image: this.state.scheme === 'bright_light' ? light6 : dark6,
-                title: 'Заголовок',
-                subtitle: 'Подзаголовок',
-            },
-            {
-                image: this.state.scheme === 'bright_light' ? light7 : dark7,
-                title: 'Заголовок',
-                subtitle: 'Подзаголовок',
-            },
-        ];
-
-        const {activePanel, activeStory, popout, scheme} = this.state;
+        const {state} = this;
+        const {activePanel, activeStory, popout, scheme} = state;
         const history = ['home', 'onboarding'].includes(activePanel) ? [activePanel] : ['home', activePanel];
         const onSwipeBack = () => this.go('home');
-        const view = {activePanel, activeStory, popout, modal, history, onSwipeBack};
+        const setPState = this.setState.bind(this);
+        const props = { state, activeStory, setPState, activePanel, popout, modal, history, onSwipeBack, platform: usePlatform, ...this};
         return (
-            <ConfigProvider scheme={scheme} isWebView>
-                <Epic activeStory={activeStory} tabbar={activePanel !== 'onboarding' &&
-                    <Tabbar>
-                        <TabbarItem
-                            onClick={() => {
-                                this.setState({
-                                    activeStory: 'home',
-                                    activePanel: 'home'
-                                })
-                            }}
-                            selected={this.state.activeStory === 'home'}
-                        ><Icon28SettingsOutline/>
-                        </TabbarItem>
-                        <TabbarItem
-                            onClick={() => {
-                                this.setState({
-                                    activeStory: 'story2',
-                                    activePanel: 'home'
-                                })
-                            }}
-                            selected={this.state.activeStory === 'story2'}
-                        ><Icon28LikeOutline/>
-                        </TabbarItem>
-                    </Tabbar>
-                }>
-                    <View id='home' header={false} {...view}>
-                        <Onboarding
-                            id='onboarding'
-                            setPState={this.setState.bind(this)}
-                            pages={pages}
-                            {...this}
-                        />
-                        <Home id='home' {...this} />
-                        <Panel2 id='panel2' {...this} />
-                    </View>
-                    <View id='story2' header={false} {...view}>
-                        <Home id='home' {...this} />
-                        <Panel2 id='panel2' {...this} />
-                    </View>
-                </Epic>
+            <ConfigProvider scheme={scheme}>
+                <Structure {...props} {...this}/>
             </ConfigProvider>
         );
     }
